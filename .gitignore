@@ -10,6 +10,7 @@ df2predictor.py
 results-googel
 evaluate.py
 output
+Models/*
 coco_json
 log_map.txt
 deepfasion2_retrieval_test.py
