@@ -55,11 +55,12 @@ def single_image_process():
     OUT_PATH = input('Enter the path to the directory to save the file: ') 
     img = cv2.imread(IMG_PATH)
     
-    # focus the image by blurring the background
+    # focus the image by blurring the background and applying distance-transform
     model = load_model()
     seg = get_pred(img,model)
     img_blur,mask = blur_background(img,seg)
-    
+    mask = cv2.cvtColor(np.uint8(mask)*255,cv2.COLOR_BGR2GRAY)
+    img_blur = focus_with_distance(img_blur,mask)
     # obtain detections on the modified image
 #     IMG_PATH, img_name = 'temp/1.png', '1.png'
 #     img_blur = cv2.imread(IMG_PATH)
@@ -97,4 +98,4 @@ def batch_image_process():
 
 # operational mode
 # batch_image_process()
-# single_image_process()
+single_image_process()

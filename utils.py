@@ -84,7 +84,7 @@ def plot_blur_mask(img1,img2):
     """    
     # sublot for blurred background image
     plt.subplot(1, 2, 1)
-    plt.imshow(img1)
+    plt.imshow(cv2.cvtColor(img1,cv2.COLOR_BGR2RGB))
     plt.xticks([]);plt.yticks([])
     plt.title('Blurred Image')
 
@@ -96,7 +96,6 @@ def plot_blur_mask(img1,img2):
     plt.show()
     
 ###############################################################################################
-
 ############################## USEFUL FUNCTIONS ###############################################
 
 def input_image():
@@ -116,6 +115,38 @@ def input_image():
     return path,img_name
 
 ###############################################################################################
+############################### FUNCTION TO FOCUS THE IMAGE ###################################
+def focus_with_distance(img, bw):
+    """
+    PARAMS:
+        img: image to be focused (np array)
+        bw: binary mask of img (np array)
+    OUTPUT:
+        focused_img: img with the distance transform applied
+    """
+    dist = cv2.distanceTransform(bw, cv2.DIST_L2, 5)
+    # Normalize the distance image for range = {0.0, 1.0}
+    # so we can visualize and threshold it
+    cv2.normalize(dist, dist, 0, 1, cv2.NORM_MINMAX)
+    dist[dist < 0.01] =  0.005
+    dist[(dist < 0.9) & (dist > 0.95) ] =  0.9
+    dist[(dist < 1) & (dist > 0.95) ] =  0.95
+    dist = -np.log(dist)
+    cv2.normalize(dist, dist, 0, 1, cv2.NORM_MINMAX)
+    
+    # applying the layers
+    focused_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(focused_img)
+    lim = 0
+    #s[binary_mapping_img == 0] = 30
+#     print("shapes of dist and s", dist.shape, s.shape)
+    #s_new = cv2.multiply(s,1-dist, cv2.CV_8U)
+    s_new = np.uint8(np.multiply(s, dist))
+    v_new = np.uint8(np.multiply(v, dist))
+    focused_img = cv2.merge((h, s_new, v_new))
+    focused_img = cv2.cvtColor(focused_img, cv2.COLOR_HSV2BGR)
+    
+    return focused_img
 
 ########################## DETECTRON DETECTIONS ###############################################
 
