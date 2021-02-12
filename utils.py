@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision
+import os
 
 ###############################################################################################
 ############ DEEPLAB FOR PERSON SEGMENTATION ALONG WITH FUNCTIONS FOR VISUALIZATION ###########
@@ -95,3 +96,79 @@ def plot_blur_mask(img1,img2):
     plt.show()
     
 ###############################################################################################
+
+############################## USEFUL FUNCTIONS ###############################################
+
+def input_image():
+    """
+    OUTPUT:
+        path: path of the image if it exists
+        img_name: name of the image (with extension)
+    """
+    while True:
+        path = input('img path: ')
+        # path = 'tests/harry1.jpeg'
+        img_name = path.split('/')[-1]
+        if not os.path.exists(path):
+            print('Img does not exists..')
+        else:
+            break
+    return path,img_name
+
+###############################################################################################
+
+########################## DETECTRON DETECTIONS ###############################################
+
+def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PATH):
+    """
+    Functions to plot and save the results of the clothing detections
+    
+    PARAMS:
+        detections: detections of the clothing items
+        img: input image
+        img_name: input image name
+        classes: list of clothing classes 
+        colors: list of colors for the bounding boxes
+        OUT_PATH: directory path to save all the results
+    OUTPUT:
+        A saved image with the plottings of the bounding boxes at the desired location
+    """
+    if len(detections) != 0 :
+#         result = ""
+        detections.sort(reverse=False ,key = lambda x:x[4])
+        
+        for x1, y1, x2, y2, cls_conf, cls_pred in detections:
+            """
+            x1,y1 : top left co-ordinates of bounding box
+            x2,y2 : bottom right co-ordinates of bounding box
+            cls_conf : class confidence score
+            cls_pred : class of the object
+            """
+            
+            # round the coordinates to int
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            
+#             result += "\t+ Label: %s, Conf: %.5f\n" % (classes[int(cls_pred)], cls_conf)         
+
+            color = colors[int(cls_pred)]
+            color = tuple(c*255 for c in color)
+            color = (.7*color[2],.7*color[1],.7*color[0])       
+            font = cv2.FONT_HERSHEY_SIMPLEX   
+            text =  "%s conf: %.3f" % (classes[int(cls_pred)] ,cls_conf)
+            cv2.rectangle(img,(x1,y1) , (x2,y2) , color,3)
+            y1 = 0 if y1<0 else y1
+            y1_rect = y1-25
+            y1_text = y1-5
+
+            if y1_rect<0:
+                y1_rect = y1+27
+                y1_text = y1+20
+            cv2.rectangle(img,(x1-2,y1_rect) , (x1 + int(8.5*len(text)),y1) , color,-1)
+            cv2.putText(img,text,(x1,y1_text), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        
+        img_name = img_name.split('.')[0]
+        cv2.imwrite(OUT_PATH + '/' + img_name + '.png',img)
+        print(f'Saved successfully at {OUT_PATH}')
+        
+    else:
+        print('No detections were found in the image...')

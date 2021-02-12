@@ -184,8 +184,8 @@ def batch_process(dir_path):
                         y1_text = y1+20
                     cv2.rectangle(img,(x1-2,y1_rect) , (x1 + int(8.5*len(text)),y1) , color,-1)
                     cv2.putText(img,text,(x1,y1_text), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-        out_img = 'output/' + dir_name +'/' + img_name     
-        cv2.imwrite(out_img,img)
+    out_img = 'output/' + dir_name +'/' + img_name     
+    cv2.imwrite(out_img,img)
 
 
 

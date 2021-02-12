@@ -6,10 +6,13 @@ from predictors.YOLOv3 import YOLOv3Predictor
 import glob
 from tqdm import tqdm
 import sys
-from focus_model import *
+# from focus_model import *
 from PIL import Image, ImageFilter
 from matplotlib import pyplot as plt
 from plot import *
+
+from utils import *
+from pdb import set_trace
 
 
 # check if GPU is available
@@ -41,52 +44,57 @@ colors = np.array([cmap(i) for i in np.linspace(0, 1, 13)])
 model = 'yolo'
 detectron = YOLOv3Predictor(params=yolo_params)
 
-def input_image():
-  
-  while True:
-    path = input('img path: ')
-    # path = 'tests/harry1.jpeg'
-    img_name = path.split('/')[-1]
-    if not os.path.exists(path):
-      print('Img does not exists..')
-    else:
-      break
-  
-  return path,img_name
+
 
 def single_image_process():
-  # read image_path
-  path,img_name = input_image()
-
-  # focus the image by blurring the background
-  resized_im, seg_map = run_visualization(path)
-  img, binary_mapping_img = focus_person(path,resized_im,seg_map)
-  # cv2.imwrite('temp3.jpg',img)
-
-  # obtain detections on the modified image
-  detections = detectron.get_detections(img)
-  plot_detections(detections,img,img_name,classes,colors)
+    """
+    Single-image operational mode
+    """
+    # read image_path
+    IMG_PATH, img_name = input_image()
+    OUT_PATH = input('Enter the path to the directory to save the file: ') 
+    img = cv2.imread(IMG_PATH)
+    
+    # focus the image by blurring the background
+    model = load_model()
+    seg = get_pred(img,model)
+    img_blur,mask = blur_background(img,seg)
+    
+    # obtain detections on the modified image
+#     IMG_PATH, img_name = 'temp/1.png', '1.png'
+#     img_blur = cv2.imread(IMG_PATH)
+    detections = detectron.get_detections(img_blur)
+    plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
 
 def batch_image_process():
+    """
+    Multi-image operational mode
+    """
+    model = load_model()
+    
+    # read folder_path
+    folder_path = input('Enter the folder path: ')
+    OUT_PATH = input('Enter the path to the directory to save the file: ') 
+    # iterate over all images in the folder
+    for img_name in tqdm(os.listdir(folder_path)):
+        
+        try:
+            # read image_path
+            IMG_PATH = os.path.join(folder_path,img_name)
+            img = cv2.imread(IMG_PATH)
 
-  # read folder_path
-  folder_path = input('Enter the folder path: ')
+            # focus the image by blurring the background
+            seg = get_pred(img,model)
+            img_blur,mask = blur_background(img,seg)
 
-  # iterate over all images in the folder
-  for img_name in os.listdir(folder_path):
-
-    # focus the image by blurring the background
-    path = os.path.join(folder_path,img_name)
-    resized_im, seg_map = run_visualization(path)
-    img, binary_mapping_img = focus_person(path,resized_im,seg_map)
-    # cv2.imwrite('temp3.jpg',img)
-
-    # obtain detections on the modified image
-    detections = detectron.get_detections(img)
-    plot_detections(detections,img,img_name,classes,colors)
+            # obtain detections on the modified image
+            detections = detectron.get_detections(img_blur)
+            plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
+        except:
+            print(f'Error occured with image : {IMG_PATH}')
 
 
 
 # operational mode
 # batch_image_process()
-single_image_process()
+# single_image_process()
