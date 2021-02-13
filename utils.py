@@ -165,7 +165,7 @@ def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PAT
         A saved image with the plottings of the bounding boxes at the desired location
     """
     if len(detections) != 0 :
-#         result = ""
+        result = ""
         detections.sort(reverse=False ,key = lambda x:x[4])
         
         for x1, y1, x2, y2, cls_conf, cls_pred in detections:
@@ -179,7 +179,8 @@ def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PAT
             # round the coordinates to int
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             
-#             result += "\t+ Label: %s, Conf: %.5f\n" % (classes[int(cls_pred)], cls_conf)         
+            result += "\t+ Label: %s, Conf: %.5f\n" % (classes[int(cls_pred)], cls_conf)         
+            result += "\t (x1,y1,x2,y2) = (%s, %s, %s, %s)\n" % (x1,y1,x2,y2)         
 
             color = colors[int(cls_pred)]
             color = tuple(c*255 for c in color)
@@ -201,5 +202,9 @@ def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PAT
         cv2.imwrite(OUT_PATH + '/' + img_name + '.png',img)
         print(f'Saved successfully at {OUT_PATH}')
         
+        with open(OUT_PATH+'/'+img_name+'.txt', 'a') as f:
+            f.write(result)
+        
+        print(result)
     else:
         print('No detections were found in the image...')

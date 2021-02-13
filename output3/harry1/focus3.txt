@@ -1,0 +1,8 @@
+	+ Label: footwear, Conf: 0.71524
+	 (x1,y1,x2,y2) = (227, 718, 312, 767)
+	+ Label: sunglasses, Conf: 0.85134
+	 (x1,y1,x2,y2) = (248, 103, 320, 127)
+	+ Label: pants, Conf: 0.87490
+	 (x1,y1,x2,y2) = (228, 377, 384, 764)
+	+ Label: top, Conf: 0.97135
+	 (x1,y1,x2,y2) = (183, 142, 401, 422)
