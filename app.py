@@ -52,6 +52,7 @@ def single_image_process():
     """
     # read image_path
     IMG_PATH, img_name = input_image()
+    img_name = img_name.split('.')[0]
     OUT_PATH = input('Enter the path to the directory to save the file: ') 
     img = cv2.imread(IMG_PATH)
     
@@ -65,7 +66,9 @@ def single_image_process():
 #     IMG_PATH, img_name = 'temp/1.png', '1.png'
 #     img_blur = cv2.imread(IMG_PATH)
     detections = detectron.get_detections(img_blur)
-    plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
+#     plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
+    crop_garments(img_blur,detections, OUT_PATH,classes,img_name)
+    print('Processed successfully!..')
 
 def batch_image_process():
     """
@@ -84,18 +87,24 @@ def batch_image_process():
             IMG_PATH = os.path.join(folder_path,img_name)
             img = cv2.imread(IMG_PATH)
 
-            # focus the image by blurring the background
+            # focus the image by blurring the background and distance transform
             seg = get_pred(img,model)
             img_blur,mask = blur_background(img,seg)
-
+            mask = cv2.cvtColor(np.uint8(mask)*255,cv2.COLOR_BGR2GRAY)
+            img_blur = focus_with_distance(img_blur,mask)
+            
             # obtain detections on the modified image
             detections = detectron.get_detections(img_blur)
-            plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
+#             plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
+            
+            img_name = img_name.split('.')[0]
+            crop_garments(img_blur,detections, OUT_PATH,classes,img_name)
         except:
             print(f'Error occured with image : {IMG_PATH}')
 
+    print('Processed successfully!..')
 
 
 # operational mode
-# batch_image_process()
-single_image_process()
+batch_image_process()
+# single_image_process()

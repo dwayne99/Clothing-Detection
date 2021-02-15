@@ -148,6 +148,7 @@ def focus_with_distance(img, bw):
     
     return focused_img
 
+###############################################################################################
 ########################## DETECTRON DETECTIONS ###############################################
 
 def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PATH):
@@ -198,7 +199,6 @@ def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PAT
             cv2.rectangle(img,(x1-2,y1_rect) , (x1 + int(8.5*len(text)),y1) , color,-1)
             cv2.putText(img,text,(x1,y1_text), font, 0.5,(255,255,255),1,cv2.LINE_AA)
         
-        img_name = img_name.split('.')[0]
         cv2.imwrite(OUT_PATH + '/' + img_name + '.png',img)
         print(f'Saved successfully at {OUT_PATH}')
         
@@ -208,3 +208,51 @@ def plot_clothing_detections(detections, img, img_name, classes, colors, OUT_PAT
         print(result)
     else:
         print('No detections were found in the image...')
+        
+        
+def crop_garments(img,detections,dest_pth,classes,img_name):
+    """
+    PARAMS:
+        img: processed image
+        detections: detections of the garments obtained from detectron
+        dest_path: destination of the directory to save the cropped images
+        classes: list of the fashion items 
+        img_name: name of the image
+    OUPUT:
+        save the individual crops of every garment
+    """
+    # categories of the fashion items
+    cat1 = [ 'outer', 'dress', 'pants', 'top', 'shorts', 'skirt']
+    cat2 = ['bag', 'belt', 'boots','footwear','sunglasses','headwear', 'scarf/tie']
+    
+    for i, (x1, y1, x2, y2, cls_conf, cls_pred ) in enumerate(detections,1):
+        
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+        label = classes[int(cls_pred)]
+        
+        desired_size = 300 if label in cat1 else 150
+
+        im = img[y1:y2,x1:x2]
+        old_size = im.shape[:2] # old_size is in (height, width) format
+
+        ratio = float(desired_size)/max(old_size)
+        new_size = tuple([int(x*ratio) for x in old_size])
+
+        # new_size should be in (width, height) format
+
+        im = cv2.resize(im, (new_size[1], new_size[0]))
+
+        delta_w = desired_size - new_size[1]
+        delta_h = desired_size - new_size[0]
+        top, bottom = delta_h//2, delta_h-(delta_h//2)
+        left, right = delta_w//2, delta_w-(delta_w//2)
+
+        color = [0, 0, 0]
+        new_im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT,value=color)
+        
+        try:
+            os.mkdir(dest_pth+'/'+img_name)
+        except:
+            pass
+        cv2.imwrite(dest_pth+'/'+img_name+'/'+str(i)+'_'+label+'.png', new_im)
+    
