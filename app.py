@@ -13,6 +13,7 @@ from plot import *
 
 from utils import *
 from pdb import set_trace
+from instance_seg import get_prediction
 
 
 # check if GPU is available
@@ -57,17 +58,26 @@ def single_image_process():
     img = cv2.imread(IMG_PATH)
     
     # focus the image by blurring the background and applying distance-transform
-    model = load_model()
-    seg = get_pred(img,model)
-    img_blur,mask = blur_background(img,seg)
-    mask = cv2.cvtColor(np.uint8(mask)*255,cv2.COLOR_BGR2GRAY)
-    img_blur = focus_with_distance(img_blur,mask)
+#     model = load_model()
+#     seg = get_pred(img,model)
+    masks, boxes, pred_cls = get_prediction(img, 0.5)
+    for i in range(len(masks)):
+        mask = masks[i]!=1
+        
+        # blur the image with mask
+        blur = cv2.blur(img,(21,21),0)
+        out = img.copy()
+        out[mask>0] = blur[mask>0]
+        
+#         img_blur,mask = blur_background(img,seg)
+#         mask = cv2.cvtColor(np.uint8(mask)*255,cv2.COLOR_BGR2GRAY)
+        img_blur = focus_with_distance(out,np.uint8(mask))
     # obtain detections on the modified image
 #     IMG_PATH, img_name = 'temp/1.png', '1.png'
 #     img_blur = cv2.imread(IMG_PATH)
-    detections = detectron.get_detections(img_blur)
+        detections = detectron.get_detections(img_blur)
 #     plot_clothing_detections(detections, img_blur, img_name, classes, colors, OUT_PATH)
-    crop_garments(img_blur,detections, OUT_PATH,classes,img_name)
+        crop_garments(img_blur,detections, OUT_PATH,classes,img_name)
     print('Processed successfully!..')
 
 def batch_image_process():
@@ -106,5 +116,5 @@ def batch_image_process():
 
 
 # operational mode
-batch_image_process()
-# single_image_process()
+# batch_image_process()
+single_image_process()

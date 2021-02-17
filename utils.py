@@ -51,28 +51,21 @@ def get_pred(img, model):
     # Return the predictions
     return output.cpu().numpy()
 
-def blur_background(img, seg_img):
+def blur_background(img, mask):
     """
     PARAMS:
         img: image to be focused 
-        seg_img: semented image obtained from deeplab model
+        mask: person mask for the image
     OUTPUT:
-        blur_img: person focused and background blurred image
+        out: person focused and background blurred image
     """
-    # get the dimentions
-    width, height, channels = img.shape
-    # Define the kernel size for applying Gaussian Blur
-    blur_value = (21, 21)
-    # Wherever there's empty space/no person, the label is zero 
-    # Hence identify such areas and create a mask (replicate it across RGB channels)
-    mask = seg_img != 15
-    mask = np.repeat(mask[:, :, np.newaxis], channels, axis = 2)
-
-    # Apply the Gaussian blur for background with the kernel size specified in constants above
-    blur = cv2.GaussianBlur(img, blur_value, 0)
-    img[mask] = blur[mask]
+    mask = mask!=1
+    blur = cv2.blur(img,(21,21),0)
+    out = img.copy()
+    out[mask>0] = blur[mask>0]
     
-    return img, mask
+    return out,mask
+    
 
 def plot_blur_mask(img1,img2):
     """
