@@ -58,18 +58,17 @@ def single_image_process():
     img = cv2.imread(IMG_PATH)
     
     # focus the image by blurring the background and applying distance-transform
-#     model = load_model()
-#     seg = get_pred(img,model)
-    masks, boxes, pred_cls = get_prediction(img, 0.5)
+    masks, boxes, pred_cls = get_prediction(img, 0.85)
     for i in range(len(masks)):
-        mask = masks[i]!=1
         
-        # blur the image with mask
+        mask = masks[i]!=1   #invert the mask
+        
+#         # blur the image with mask
         blur = cv2.blur(img,(21,21),0)
         out = img.copy()
         out[mask>0] = blur[mask>0]
         
-#         img_blur,mask = blur_background(img,seg)
+#         img_blur,mask = blur_background(out,mask)
 #         mask = cv2.cvtColor(np.uint8(mask)*255,cv2.COLOR_BGR2GRAY)
         img_blur = focus_with_distance(out,np.uint8(mask))
     # obtain detections on the modified image

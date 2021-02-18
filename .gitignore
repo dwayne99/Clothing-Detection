@@ -1,4 +1,6 @@
 .git
+dataset_myntra/*
+temp/*
 yolo/weights/*.weights
 faster-retina/models/deepfashion2/*.pth
 faster-retina/models/modanet/*.pth
